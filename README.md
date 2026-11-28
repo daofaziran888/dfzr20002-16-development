@@ -11,7 +11,7 @@
 .
 ├── frontend/                 Vue 3 + Vite + TypeScript 前端
 │   ├── src/views/WorkbenchView.vue|tsx  全部模块共享工作台
-│   ├── src/data/modules.ts              18个业务模块配置
+│   ├── src/data/modules.ts              19个业务模块配置
 │   ├── src/api/              统一请求封装
 │   └── vite.config.ts        dev server 配置（open: false）
 ├── backend/                  FastAPI（Python） 后端
@@ -68,6 +68,7 @@ npm run dev
 | 布展排期 | `schedule` | 排期计划 | 活动名称、布展起始、撤展截止 |
 | 交场确认 | `handover` | 交场单 | 交出班组、接收人员、遗留事项 |
 | 突发事件 | `incident` | 事件记录 | 事件类型、发生位置、处置班组 |
+| 事故临时导视授权 | `emergency_signage` | 换向回执 | 事故单号、换向点位、目标方向 |
 
 ## 约定
 
@@ -76,6 +77,26 @@ npm run dev
   `frontend/src/domain/<模块>.ts`，用于承载真实业务差异并维持36题位容量。
 - 列表接口统一返回 `{ items, total, page, size }`，动作接口统一返回 `{ ok, message }`。
 - 状态流转只允许在 `app/services` 里改，路由层不做业务判断。
+
+## 事故临时导视授权
+
+导视系统之外的应急换向权限入口（模块 `emergency_signage`，业务对象为换向回执）：
+
+- 处置人员凭事故单 + 场馆点位申请换向回执（`POST /api/emergency/apply`），
+  临时权限只覆盖事故单所属场馆，越权申请置「已拒绝」并留痕
+  （`GET /api/emergency/rejections` 可查）。
+- 同一时刻同一点位只允许一个「已生效」方向：先交回安装回执者生效
+  （`POST /api/emergency/receipts/{id}/install`），其余同点位回执在解除前
+  不可再安装（`GET /api/emergency/receipts/{id}/can-install` 预检）。
+- 事件处置按与事故单关联的生效回执向现场发布通行路线
+  （`GET /api/emergency/incidents/{事故单号}/route`）。
+- 解除事故回收该事故单全部活动回执
+  （`POST /api/emergency/incidents/{事故单号}/resolve`），
+  事后仍可查回旧路线上实际安装过的临时牌
+  （`GET /api/emergency/incidents/{事故单号}/installed-signs`）。
+
+前端「事故临时导视」工作台走通用资源接口，「应急通行面板」（`/emergency`）
+承载安装回执提交、通行路线与安装审计查询。
 
 领域：应用开发
 子方向：web前端/全栈开发

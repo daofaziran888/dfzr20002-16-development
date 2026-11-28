@@ -20,6 +20,7 @@ from app.services.change_order import ChangeOrderService
 from app.services.schedule import ScheduleService
 from app.services.handover import HandoverService
 from app.services.incident import IncidentService
+from app.services.emergency_signage import EmergencySignageService
 
 SERVICES: dict[str, BaseModuleService] = {
     "venue": VenueService(),
@@ -40,6 +41,7 @@ SERVICES: dict[str, BaseModuleService] = {
     "schedule": ScheduleService(),
     "handover": HandoverService(),
     "incident": IncidentService(),
+    "emergency_signage": EmergencySignageService(),
 }
 
 
